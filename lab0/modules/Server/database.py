@@ -20,21 +20,32 @@ class Database(object):
         self.db_file = db_file
         self.rand = random.Random()
         self.rand.seed()
-        #
-        # Your code here.
-        #
-        pass
+        
+        self.data = []
+        with open(self.db_file, "r") as f:
+            elem = ""
+            for line in f:
+                if(line[0] == "%"):
+                    self.data.append(elem)
+                    elem = ""
+                else:
+                    elem += line + "\n"
+        
+        print("Number of fortunes: " + str(len(self.data)))
 
     def read(self):
         """Read a random location in the database."""
         #
         # Your code here.
         #
-        pass
+        random_index = self.rand.randint(0, len(self.data)-1);
+        return self.data[random_index]
 
     def write(self, fortune):
         """Write a new fortune to the database."""
         #
         # Your code here.
         #
-        pass
+        self.data.append(fortune)
+        with open(self.db_file, "a") as f:
+            f.write(fortune+"\n%\n")
