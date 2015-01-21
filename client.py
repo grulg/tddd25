@@ -63,20 +63,44 @@ class DatabaseProxy(object):
 
     def __init__(self, server_address):
         self.address = server_address
-
     # Public methods
 
-    def read(self):
-        #
-        # Your code here.
-        #
-        pass
+    def error_check(self, res):
+        if "error" in res.keys():
+            name = res["error"]["name"]
+            args = res["error"]["args"]
+            
+            if name == "AttributeError":
+                raise AttributeError(args)
+            elif name == "TypeError":
+                raise TypeError(args)
+            else:
+                raise Exception(args)
 
-    def write(self, fortune):
-        #
-        # Your code here.
-        #
-        pass
+    def send_to_server(self, data):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect(self.address)
+        send = json.dumps(data) + "\n"
+        s.sendall(str.encode(send))
+        
+        res = s.recv(1024)
+        s.close()
+        
+        json_res = json.loads(bytes.decode(res))
+        self.error_check(json_res)
+        
+        return json_res["result"]
+
+    def read(self):
+        data = { "method" : "read",
+                 "args" : []}
+        return self.send_to_server(data)
+
+    def write(self, fortune):     
+        data = { "method" : "write",
+                 "args" : [fortune]}
+        return self.send_to_server(data)
+
 
 # -----------------------------------------------------------------------------
 # The main program

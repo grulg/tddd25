@@ -18,7 +18,7 @@ import random
 import argparse
 
 import sys
-sys.path.append("../modules")
+sys.path.append("modules")
 from Server.database import Database
 from Server.Lock.readWriteLock import ReadWriteLock
 
@@ -64,16 +64,15 @@ class Server(object):
     # Public methods
 
     def read(self):
-        #
-        # Your code here.
-        #
-        pass
+        self.rwlock.read_acquire()
+        data = self.db.read()
+        self.rwlock.read_release()
+        return data
 
     def write(self, fortune):
-        #
-        # Your code here.
-        #
-        pass
+        self.rwlock.write_acquire()
+        self.db.write(fortune)
+        self.rwlock.write_release()
 
 
 class Request(threading.Thread):
@@ -114,10 +113,39 @@ class Request(threading.Thread):
                         }
                     }
         """
-        #
-        # Your code here.
-        #
-        pass
+        self.data = json.loads(request)
+
+        if self.data["method"] == "read":
+            read_data = self.db_server.read()
+            result = {
+                "result": read_data
+            }
+
+        elif self.data["method"] == "write":
+
+            if len(self.data["args"]) == 1:
+                self.db_server.write(self.data["args"][0])
+                result = {
+                    "result": None
+                }
+            else:
+                result = {
+                    "error": {
+                        "name": "TypeError",
+                        "args": ["Invalid arguments."]
+                    }
+                }
+
+        else:
+            # Return error
+            result = {
+                "error": {
+                    "name": "AttributeError",
+                    "args": ["Request method does not exist."]
+                }
+            }
+
+        return json.dumps(result)
 
     def run(self):
         try:
