@@ -83,6 +83,7 @@ class DatabaseProxy(object):
         send = json.dumps(data) + "\n"
         s.sendall(str.encode(send))
         
+        #May have to change this to read more than 1024 later
         res = s.recv(1024)
         s.close()
         
