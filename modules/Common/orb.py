@@ -63,7 +63,6 @@ class Stub(object):
         unregister = (data["method"] == "unregister")
         
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print(self.address)
         s.connect(self.address)
         send = json.dumps(data) + "\n"
         s.sendall(str.encode(send))
@@ -107,17 +106,17 @@ class Request(threading.Thread):
     def process_request(self, request):
         self.data = json.loads(request)
 
-        if self.data["method"] == "check":
-            check_data = str(self.owner.check())
+        try:
+            dispatch_data = getattr(self.owner, self.data["method"])(*self.data["args"])
             result = {
-                "result": check_data
+                "result": dispatch_data
             }
-        else:
+        except Exception as e:
             result = {
                 "error": {
-                    "name" : "AttributeError",
-                    "args": ["Method does not exist"]
-                    }
+                    "name" : e.__class__.__name__,
+                    "args": str(e)
+                }
             }
 
         return json.dumps(result)
@@ -168,7 +167,7 @@ class Skeleton(threading.Thread):
         while True:
             try:
                 conn, addr = self.server.accept()
-                req = Request(owner, conn, addr)
+                req = Request(self.owner, conn, addr)
                 print("Serving a request from {0}".format(addr))
                 req.start()
             except socket.error:
