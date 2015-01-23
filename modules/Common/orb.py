@@ -59,10 +59,11 @@ class Stub(object):
         elif not "result" in res.keys():
             raise AttributeError(["Invalid dataformat, requires result or error"])
 
-    def send_to_nameserver(self, data):
+    def send(self, data):
         unregister = (data["method"] == "unregister")
         
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print(self.address)
         s.connect(self.address)
         send = json.dumps(data) + "\n"
         s.sendall(str.encode(send))
@@ -83,7 +84,7 @@ class Stub(object):
     def _rmi(self, method, *args):
         data = { "method" : method,
                  "args" : args}
-        return self.send_to_nameserver(data)
+        return self.send(data)
 
     def __getattr__(self, attr):
         """Forward call to name over the network at the given address."""
