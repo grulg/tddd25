@@ -56,6 +56,8 @@ class Stub(object):
                 raise TypeError(args)
             else:
                 raise Exception(args)
+        elif not "result" in res.keys():
+            raise AttributeError(["Invalid dataformat, requires result or error"])
 
     def send_to_nameserver(self, data):
         unregister = (data["method"] == "unregister")
