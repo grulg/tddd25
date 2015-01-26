@@ -49,13 +49,9 @@ class Stub(object):
         if "error" in res.keys():
             name = res["error"]["name"]
             args = res["error"]["args"]
-            print("ARGS: " + str(args))
-            if name == "AttributeError":
-                raise AttributeError(args)
-            elif name == "TypeError":
-                raise TypeError(args)
-            else:
-                raise Exception(args)
+            exception = eval("%s(args)"%(name))
+            raise exception
+
         elif not "result" in res.keys():
             raise AttributeError(["Invalid dataformat, requires result or error"])
 
@@ -70,6 +66,7 @@ class Stub(object):
         #May have to change this to read more than 1024 later
         if not unregister:
             res = s.recv(1024)
+            print(res)
             s.close()
         else:
             s.close()
@@ -108,6 +105,7 @@ class Request(threading.Thread):
 
         try:
             dispatch_data = getattr(self.owner, self.data["method"])(*self.data["args"])
+            print("all dispatched")
             result = {
                 "result": dispatch_data
             }
@@ -118,7 +116,7 @@ class Request(threading.Thread):
                     "args": str(e)
                 }
             }
-
+        print(result)
         return json.dumps(result)
 
 
