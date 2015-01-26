@@ -43,9 +43,10 @@ class PeerList(object):
                     self.peers[pid] = peer
                     peer.register_peer(self.owner.id, self.owner.address)
             
-            self.display_peers()
         finally:
             self.lock.release()
+        
+        self.display_peers()
 
     def destroy(self):
         """Unregister this peer from all others in the list."""

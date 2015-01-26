@@ -49,7 +49,7 @@ class Stub(object):
         if "error" in res.keys():
             name = res["error"]["name"]
             args = res["error"]["args"]
-            
+            print("ARGS: " + str(args))
             if name == "AttributeError":
                 raise AttributeError(args)
             elif name == "TypeError":

@@ -90,8 +90,8 @@ class DistributedLock(object):
 
         self.peer_list.lock.acquire()
 
-        for peer in self.peer_list.peers:
-            self.request[peer.id] = 0
+        for pid in self.peer_list.peers.keys():
+            self.request[pid] = 0
 
         if len(self.peer_list.peers) == 0:
             self.state = TOKEN_PRESENT
@@ -117,7 +117,6 @@ class DistributedLock(object):
     def register_peer(self, pid):
         """Called when a new peer joins the system."""
         self.peer_list.lock.acquire()
-        self.token[pid] = 0
         self.request[pid] = 0
         self.peer_list.lock.release()
 
@@ -133,7 +132,7 @@ class DistributedLock(object):
         print("Trying to acquire the lock...")
         self.peer_list.lock.acquire()
         if self.state == NO_TOKEN:
-            for peer in self.peer_list.peers:
+            for peer in self.peer_list.peers.values():
                 peer.request_token(self.time, self.owner.id)
 
             while self.state == NO_TOKEN:
@@ -148,29 +147,32 @@ class DistributedLock(object):
         self.state = TOKEN_PRESENT
 
         self.peer_list.lock.acquire()
+        print("Locked")
 
-        peers = sorted(self.peer_list.peers.iteritems())
+        peers = sorted(self.peer_list.peers.items())
+
         lower_peers = []
         found = False
         for peer in peers:
-            if peer.id > self.owner.id:
-                if self.can_has_tokenz(peer):
+            if peer[0] > self.owner.id:
+                if self.can_has_tokenz(peer[1]):
                     found = True
                     break
 
             else:
-                lower_peers.append(peer)
-
+                lower_peers.append(peer[1])
+        
         if not found:
             for peer in lower_peers:
-                if peer.id > self.owner.id:
-                    if self.can_has_tokenz(peer):
-                        break
+                if self.can_has_tokenz(peer):
+                    break
 
         self.peer_list.lock.release()
+        print("Unlocked")
         self.token = None
 
     def can_has_tokenz(self, peer):
+        print("can haz tokenz")
         if self.request[peer.id] > self.token[peer.id]:
             self.state = NO_TOKEN
             self.token[self.owner.id] = self.time   # TODO Fix this!
@@ -182,9 +184,11 @@ class DistributedLock(object):
     def request_token(self, time, pid):
         """Called when some other object requests the token from us."""
         # TODO Locks?
+        print("Releasing token!")
         self.request[pid] = max(self.request[pid], time)
         if self.state == TOKEN_PRESENT:
             self.release()
+        print("Released!")
 
     def obtain_token(self, token):
         """Called when some other object is giving us the token."""
