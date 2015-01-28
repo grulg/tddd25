@@ -23,7 +23,7 @@ class DistributedReadWriteLock(readWriteLock.ReadWriteLock):
         self.distributed_lock = distributed_lock
         
     # Public methods
-
+    #Lab 5
     def write_acquire(self):
         """Acquire the rights to write into the database.
 
@@ -32,9 +32,9 @@ class DistributedReadWriteLock(readWriteLock.ReadWriteLock):
 
         """
         super().write_acquire()
-        #readWriteLock.ReadWriteLock.write_acquire(self)
         self.distributed_lock.acquire()
-
+        
+    #Lab 5
     def write_release(self):
         """Release the rights to write into the database.
 

@@ -65,38 +65,44 @@ class DatabaseProxy(object):
         self.address = server_address
     # Public methods
 
+    #Lab 1
     def error_check(self, res):
         if "error" in res.keys():
             name = res["error"]["name"]
             args = res["error"]["args"]
-            
-            if name == "AttributeError":
-                raise AttributeError(args)
-            elif name == "TypeError":
-                raise TypeError(args)
-            else:
-                raise Exception(args)
+            exception = eval("%s(args)"%(name))
+            raise exception
 
+        elif not "result" in res.keys():
+            raise AttributeError(["Invalid dataformat, requires result or error"])
+
+    #Lab 1
     def send_to_server(self, data):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect(self.address)
         send = json.dumps(data) + "\n"
         s.sendall(str.encode(send))
-        
-        #May have to change this to read more than 1024 later
-        res = s.recv(1024)
+
+        res = b""
+        while 1:
+            part = s.recv(1024)
+            if not part:
+                break
+            res += part
         s.close()
-        
+    
         json_res = json.loads(bytes.decode(res))
         self.error_check(json_res)
         
         return json_res["result"]
 
+    #Lab 1
     def read(self):
         data = { "method" : "read",
                  "args" : []}
         return self.send_to_server(data)
 
+    #Lab 1
     def write(self, fortune):     
         data = { "method" : "write",
                  "args" : [fortune]}

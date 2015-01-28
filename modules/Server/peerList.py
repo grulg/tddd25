@@ -24,6 +24,7 @@ class PeerList(object):
 
     # Public methods
 
+    #Lab 3
     def initialize(self):
         """Populates the list of existing peers and registers the current
         peer at each of the discovered peers.
@@ -33,7 +34,6 @@ class PeerList(object):
         object has been registered with the name service.
 
         """
-
         self.lock.acquire()
         try:
             peers = self.owner.name_service.require_all(self.owner.type)
@@ -48,6 +48,7 @@ class PeerList(object):
         
         self.display_peers()
 
+    #Lab 3
     def destroy(self):
         """Unregister this peer from all others in the list."""
         self.lock.acquire()

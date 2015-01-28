@@ -73,7 +73,7 @@ class DistributedLock(object):
         return dict(token)
 
     # Public methods
-
+    #Lab 4
     def initialize(self):
         """ Initialize the state, request, and token dicts of the lock.
 
@@ -93,12 +93,14 @@ class DistributedLock(object):
         for pid in self.peer_list.peers.keys():
             self.request[pid] = 0
 
+        #Create token if only peer in namespace
         if len(self.peer_list.peers) == 0:
             self.state = TOKEN_PRESENT
             self.token = {self.owner.id: 0}
 
         self.peer_list.lock.release()
 
+    #Lab 4
     def destroy(self):
         """ The object is being destroyed.
 
@@ -111,31 +113,38 @@ class DistributedLock(object):
 
         self.peer_list.lock.acquire()
 
+        #Give token if present and there's atleast one peer left
         if self.state == TOKEN_PRESENT and len(self.peer_list.peers) > 0:
             list(self.peer_list.peers.values())[0].obtain_token(self._prepare(self.token))
 
         self.peer_list.lock.release()
 
+    #Lab 4
     def register_peer(self, pid):
         """Called when a new peer joins the system."""
         self.peer_list.lock.acquire()
 
         self.request[pid] = 0
+
+        #Add peer to token if present
         if(self.state != NO_TOKEN):
             self.token[pid] = 0
 
         self.peer_list.lock.release()
 
+    #Lab 4
     def unregister_peer(self, pid):
         """Called when a peer leaves the system."""
         self.peer_list.lock.acquire()
 
+        #Delete peer from token if present
         if(self.state != NO_TOKEN and pid in self.token.keys()):
             del(self.token[pid])
         del(self.request[pid])
 
         self.peer_list.lock.release()
 
+    #Lab 4
     def acquire(self):
         """Called when this object tries to acquire the lock."""
         print("Trying to acquire the lock...")
@@ -148,20 +157,26 @@ class DistributedLock(object):
 
             while self.state == NO_TOKEN:
                 pass
-
-        self.peer_list.lock.release()
+                
         self.state = TOKEN_HELD
+                
+        self.peer_list.lock.release()
 
+    #Lab 4
     def release(self):
         """Called when this object releases the lock."""
         print("Releasing the lock...")
-        self.state = TOKEN_PRESENT
 
         self.peer_list.lock.acquire()
 
+        self.state = TOKEN_PRESENT
+
+        #Sort on id ascending
         peers = sorted(self.peer_list.peers.items())
+        
         lower_peers = []
         found = False
+        #Check for token request of higher ids than owner
         for peer in peers:
             if peer[0] > self.owner.id:
                 if self.can_has_tokenz(peer[0], peer[1]):
@@ -172,15 +187,19 @@ class DistributedLock(object):
                 lower_peers.append(peer)
         
         if not found:
+            #Check for token request of lower ids than owner
             for peer in lower_peers:
                 if self.can_has_tokenz(peer[0], peer[1]):
                     break
 
         self.peer_list.lock.release()
 
+    #Lab 4
     def can_has_tokenz(self, pid, peer):
-        
-        if self.request[str(pid)] > self.token[pid]:
+        """
+        Check if request has been done already
+        """
+        if self.request[pid] > self.token[pid]:
             self.state = NO_TOKEN
             self.token[self.owner.id] = self.time
             peer.obtain_token(self._prepare(self.token))
@@ -190,16 +209,17 @@ class DistributedLock(object):
         else:
             return False
 
+    #Lab 4
     def request_token(self, time, pid):
         """Called when some other object requests the token from us."""
         self.time = max(self.time, time)
         self.request[pid] = max(self.request[pid], time)
-        print("request_token")
+        
         if self.state == TOKEN_PRESENT:
-            print("before rele")
             self.release()
-            print("after rele")
+        
 
+    #Lab 4
     def obtain_token(self, token):
         """Called when some other object is giving us the token."""
         print("Receiving the token...")

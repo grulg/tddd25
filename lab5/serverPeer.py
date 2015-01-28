@@ -26,6 +26,7 @@ sys.path.append("../modules")
 from Common import orb
 from Common.nameServiceLocation import name_service_address
 from Common.objectType import object_type
+from Common.ip_addr import ip
 
 from Server import database
 from Server.peerList import PeerList
@@ -108,14 +109,17 @@ class Server(orb.Peer):
                 "Client instance has no attribute '{0}'".format(attr))
 
     # Public methods
-
+    #Lab 5
     def read(self):
         """Read a fortune from the database."""
         self.drwlock.read_acquire()
+        
         ret_data = self.db.read()
+        
         self.drwlock.read_release()
         return ret_data
 
+    #Lab 5
     def write(self, fortune):
         """Write a fortune to the database.
 
@@ -131,7 +135,7 @@ class Server(orb.Peer):
         for peer in self.peer_list.peers.values():
             peer.write_no_lock(fortune)
         
-        self.drwlock.release()
+        self.drwlock.write_release()
         
     def write_no_lock(self, fortune):
         """Write a fortune to the database.
@@ -160,7 +164,7 @@ class Server(orb.Peer):
 # -----------------------------------------------------------------------------
 
 # Initialize the client object.
-local_address = ("94.254.45.20", local_port)
+local_address = (ip, local_port)
 p = Server(local_address, name_service_address, server_type, db_file)
 
 

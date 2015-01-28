@@ -44,38 +44,48 @@ class Stub(object):
 
     def __init__(self, address):
         self.address = tuple(address)
-
+        
+    #Lab 2
     def error_check(self, res):
+        #Raise if error
         if "error" in res.keys():
             name = res["error"]["name"]
             args = res["error"]["args"]
             exception = eval("%s(args)"%(name))
             raise exception
 
+        #Dataformat violation
         elif not "result" in res.keys():
             raise AttributeError(["Invalid dataformat, requires result or error"])
 
+    #Lab 2
     def send(self, data):
-        unregister = (data["method"] == "unregister")
-        
+        #No reply on unregister
+        unregister = (data["method"] in ["unregister", "unregister_peer"])
+
+        #Connect
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect(self.address)
+        
         send = json.dumps(data) + "\n"
         s.sendall(str.encode(send))
         
-        #May have to change this to read more than 1024 later
-        if not unregister:
-            res = s.recv(1024)
-            print(res)
-            s.close()
-        else:
-            s.close()
-            return
-
-        json_res = json.loads(bytes.decode(res))
-        self.error_check(json_res)
+        #Receive
+        res = b""
+        while True and not unregister:
+            part = s.recv(1024)
+            if not part:
+                break
+            res += part
+        s.close()
         
-        return json_res["result"]
+        #Handle result
+        if len(res) > 0:
+            json_res = json.loads(bytes.decode(res))
+            self.error_check(json_res)
+            return json_res["result"]
+        else:
+            return
 
     def _rmi(self, method, *args):
         data = { "method" : method,
@@ -99,24 +109,25 @@ class Request(threading.Thread):
         self.conn = conn
         self.owner = owner
         self.daemon = True
-
+        
+    #Lab 2
     def process_request(self, request):
         self.data = json.loads(request)
 
         try:
+            #Generic invoke of requested method
             dispatch_data = getattr(self.owner, self.data["method"])(*self.data["args"])
-            print("all dispatched")
             result = {
                 "result": dispatch_data
             }
         except Exception as e:
+            #Exception data to client
             result = {
                 "error": {
                     "name" : e.__class__.__name__,
                     "args": str(e)
                 }
             }
-        print(result)
         return json.dumps(result)
 
 
@@ -156,14 +167,17 @@ class Skeleton(threading.Thread):
         self.owner = owner
         self.daemon = True
     
+        #Lab 2
+        #Init socket
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind(self.address)
         self.server.listen(1)
     
-
+    #Lab 2    
     def run(self):
         while True:
             try:
+                #Listen on socket and create request thread for each served
                 conn, addr = self.server.accept()
                 req = Request(self.owner, conn, addr)
                 print("Serving a request from {0}".format(addr))

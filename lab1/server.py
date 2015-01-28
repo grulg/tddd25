@@ -18,7 +18,7 @@ import random
 import argparse
 
 import sys
-sys.path.append("modules")
+sys.path.append("../modules")
 from Server.database import Database
 from Server.Lock.readWriteLock import ReadWriteLock
 
@@ -62,13 +62,14 @@ class Server(object):
         self.rwlock = ReadWriteLock()
 
     # Public methods
-
+    #Lab 1 
     def read(self):
         self.rwlock.read_acquire()
         data = self.db.read()
         self.rwlock.read_release()
         return data
 
+    #Lab 1
     def write(self, fortune):
         self.rwlock.write_acquire()
         self.db.write(fortune)
@@ -89,7 +90,7 @@ class Request(threading.Thread):
         self.daemon = True
 
     # Private methods
-
+    #Lab 1
     def process_request(self, request):
         """ Process a JSON formated request, send it to the database, and
             return the result.

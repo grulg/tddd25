@@ -20,6 +20,7 @@ sys.path.append("../modules")
 from Common import orb
 from Common.nameServiceLocation import name_service_address
 from Common.objectType import object_type
+from Common.ip_addr import ip
 
 from Server.peerList import PeerList
 from Server.Lock.distributedLock import DistributedLock
@@ -103,7 +104,7 @@ class Client(orb.Peer):
 
 # Initialize the client object.
 #local_address = (socket.gethostname(), local_port)
-local_address = ("130.236.185.169", local_port)
+local_address = (ip, local_port)
 p = Client(local_address, name_service_address, client_type)
 
 
