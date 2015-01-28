@@ -70,9 +70,14 @@ class DatabaseProxy(object):
         if "error" in res.keys():
             name = res["error"]["name"]
             args = res["error"]["args"]
-            exception = eval("%s(args)"%(name))
-            raise exception
-
+            if(name in __builtins__.keys()):
+                exception = __builtins__[name]
+            
+                if(isinstance(exception, type(Exception))):
+                    raise exception(*args)
+            
+            raise TypeError("Invalid exception from remote")
+            
         elif not "result" in res.keys():
             raise AttributeError(["Invalid dataformat, requires result or error"])
 

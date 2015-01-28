@@ -51,9 +51,15 @@ class Stub(object):
         if "error" in res.keys():
             name = res["error"]["name"]
             args = res["error"]["args"]
-            exception = eval("%s(args)"%(name))
-            raise exception
-
+            
+            if(name in __builtins__.keys()):
+                exception = __builtins__[name]
+            
+                if(isinstance(exception, type(Exception))):
+                    raise exception(*args)
+            
+            raise TypeError("Invalid exception from remote")
+                    
         #Dataformat violation
         elif not "result" in res.keys():
             raise AttributeError(["Invalid dataformat, requires result or error"])
@@ -125,7 +131,7 @@ class Request(threading.Thread):
             result = {
                 "error": {
                     "name" : e.__class__.__name__,
-                    "args": str(e)
+                    "args": e.args
                 }
             }
         return json.dumps(result)
