@@ -151,16 +151,23 @@ class DistributedLock(object):
         self.peer_list.lock.acquire()
 
         if self.state == NO_TOKEN:
-            for peer in self.peer_list.peers.values():
+            for pid, peer in self.peer_list.peers.items():
                 self.time += 1
+                #self.peer_list.lock.release()
                 peer.request_token(self.time, self.owner.id)
-
+                #self.peer_list.lock.acquire()
+            
+            self.peer_list.lock.release()
+            
             while self.state == NO_TOKEN:
                 pass
-                
+        else:
+            self.peer_list.lock.release()
+
+        self.peer_list.lock.acquire()
         self.state = TOKEN_HELD
-                
         self.peer_list.lock.release()
+                
 
     #Lab 4
     def release(self):
@@ -168,7 +175,6 @@ class DistributedLock(object):
         print("Releasing the lock...")
 
         self.peer_list.lock.acquire()
-
         self.state = TOKEN_PRESENT
 
         #Sort on id ascending
@@ -212,9 +218,12 @@ class DistributedLock(object):
     #Lab 4
     def request_token(self, time, pid):
         """Called when some other object requests the token from us."""
+        self.peer_list.lock.acquire()
         self.time = max(self.time, time)
         self.request[pid] = max(self.request[pid], time)
-        
+
+        self.peer_list.lock.release()
+
         if self.state == TOKEN_PRESENT:
             self.release()
         
@@ -223,8 +232,11 @@ class DistributedLock(object):
     def obtain_token(self, token):
         """Called when some other object is giving us the token."""
         print("Receiving the token...")
+        self.peer_list.lock.acquire()
         self.token = self._unprepare(token)
         self.state = TOKEN_PRESENT
+        
+        self.peer_list.lock.release()
 
     def display_status(self):
         """Print the status of this peer."""

@@ -149,13 +149,12 @@ class Server(orb.Peer):
 
     def register_peer(self, pid, paddr):
         """Register a server peer in this server's peer list."""
-
         self.peer_list.register_peer(pid, paddr)
         self.distributed_lock.register_peer(pid)
 
+
     def unregister_peer(self, pid):
         """Remove a server peer from this server's peer list."""
-
         self.peer_list.unregister_peer(pid)
         self.distributed_lock.unregister_peer(pid)
 

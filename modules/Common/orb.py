@@ -67,7 +67,7 @@ class Stub(object):
     #Lab 2
     def send(self, data):
         #No reply on unregister
-        unregister = (data["method"] in ["unregister", "unregister_peer"])
+        unregister = (data["method"] in ["unregister", "unregister_peer", "request_token"])
 
         #Connect
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

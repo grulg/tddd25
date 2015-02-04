@@ -52,6 +52,7 @@ for ((i=1; i <= $no_servers ; i++)) ; do
     dbfile="${dbdir}${database}_${i}${dbext}"
     cp "${dbdir}${database}${dbext}" $dbfile
     $term -T "Server $i" -e $wrap "s$i" $server -f $dbfile &
+    echo $dbfile
 done
 
 sleep 1

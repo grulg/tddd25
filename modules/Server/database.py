@@ -47,5 +47,6 @@ class Database(object):
         # Your code here.
         #
         self.data.append(fortune)
+        print("writing " + fortune)
         with open(self.db_file, "a") as f:
             f.write(fortune+"\n%\n")
